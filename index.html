@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex — Ask your company's own documents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EEF1EA;
+    --card: #FFFFFF;
+    --ink: #202A25;
+    --ink-soft: #5B6A61;
+    --line: #D3D9CD;
+    --accent: #2F6F5E;
+    --accent-soft: #E3EDE9;
+    --stamp: #A9762F;
+    --alert: #A6503B;
+    --alert-soft: #F3E4DF;
+    --radius: 14px;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button{ font-family: inherit; }
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+    min-height: 100%;
+  }
+
+  /* ---------- Header ---------- */
+  .app__header{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .brand{ display: flex; flex-direction: column; gap: 6px; }
+  .brand__mark{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand__mark em{
+    font-style: italic;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .brand__tag{
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    max-width: 46ch;
+  }
+  .proto-pill{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 100px;
+    padding: 5px 12px;
+    white-space: nowrap;
+  }
+
+  .docs-toggle{
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  /* ---------- Layout ---------- */
+  .layout{
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  /* ---------- Archive panel ---------- */
+  .archive{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: sticky;
+    top: 20px;
+  }
+  .archive__title{
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .archive__sub{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+  }
+  .doc-card{
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 12px;
+    margin-bottom: 10px;
+    background: #FCFDFB;
+  }
+  .doc-card__title{
+    font-weight: 600;
+    font-size: 13.5px;
+    margin: 0 0 4px;
+  }
+  .doc-card__snippet{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .doc-card__actions{ display: flex; gap: 12px; }
+  .link-btn{
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .link-btn--danger{ color: var(--alert); }
+
+  .doc-edit textarea, .doc-edit input{
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    resize: vertical;
+  }
+  .doc-edit textarea{ min-height: 80px; }
+  .doc-edit__row{ display: flex; gap: 8px; }
+  .doc-edit input[type="file"]{
+    font-size: 12px;
+    padding: 6px;
+    background: var(--paper);
+  }
+
+  .btn{
+    border: none;
+    border-radius: 9px;
+    padding: 9px 14px;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .btn--primary{ background: var(--accent); color: #fff; }
+  .btn--primary:hover{ background: #275c4d; }
+  .btn--ghost{ background: var(--accent-soft); color: var(--accent); }
+  .btn--full{ width: 100%; }
+  .btn--sm{ padding: 7px 10px; font-size: 12.5px; }
+
+  .archive__add{
+    border-top: 1px dashed var(--line);
+    margin-top: 4px;
+    padding-top: 14px;
+  }
+  .archive__reset{
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* ---------- Chat panel ---------- */
+  .chat{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    min-height: 560px;
+  }
+  .chat__head{
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .chat__head h2{
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .chat__head p{
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .chat__log{
+    flex: 1;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  .empty-state{
+    margin: auto;
+    text-align: center;
+    max-width: 380px;
+    color: var(--ink-soft);
+  }
+  .empty-state strong{ color: var(--ink); display:block; margin-bottom: 6px; font-family:'Fraunces', serif; font-size: 17px; font-weight: 600;}
+
+  .suggestions{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+  .chip{
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 100px;
+    padding: 7px 13px;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .chip:hover{ border-color: var(--accent); color: var(--accent); }
+
+  .bubble-row{ display: flex; }
+  .bubble-row--user{ justify-content: flex-end; }
+  .bubble{
+    max-width: 74%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+  .bubble--user{
+    background: var(--ink);
+    color: #fff;
+    border-bottom-right-radius: 3px;
+  }
+  .bubble-col{ max-width: 74%; display: flex; flex-direction: column; gap: 6px; }
+  .bubble--assistant{
+    background: var(--accent-soft);
+    color: var(--ink);
+    border-bottom-left-radius: 3px;
+  }
+  .bubble--assistant.is-alert{
+    background: var(--alert-soft);
+  }
+
+  .stamp{
+    align-self: flex-start;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--stamp);
+    border: 1px dashed var(--stamp);
+    border-radius: 6px;
+    padding: 3px 9px;
+    transform: rotate(-1.3deg);
+  }
+
+  .thinking{
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px 2px;
+  }
+  .thinking span{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.1s infinite ease-in-out;
+  }
+  .thinking span:nth-child(2){ animation-delay: 0.15s; }
+  .thinking span:nth-child(3){ animation-delay: 0.3s; }
+  @media (prefers-reduced-motion: no-preference){
+    @keyframes bounce{
+      0%, 80%, 100% { transform: translateY(0); opacity: .5;}
+      40% { transform: translateY(-4px); opacity: 1;}
+    }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .thinking span{ animation: none; opacity: .8; }
+  }
+
+  .chat__inputbar{
+    border-top: 1px solid var(--line);
+    padding: 14px 18px;
+    display: flex;
+    gap: 10px;
+  }
+  .chat__inputbar input{
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14.5px;
+    font-family: inherit;
+  }
+  .send-btn{
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .send-btn:disabled{ opacity: 0.5; cursor: default; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 860px){
+    .layout{ grid-template-columns: 1fr; }
+    .docs-toggle{ display: inline-flex; }
+    .archive{
+      position: fixed;
+      z-index: 20;
+      top: 0; left: 0; bottom: 0;
+      width: min(320px, 84vw);
+      transform: translateX(-105%);
+      transition: transform .22s ease;
+      overflow-y: auto;
+      border-radius: 0;
+    }
+    .archive.is-open{ transform: translateX(0); box-shadow: 0 0 0 100vmax rgba(0,0,0,.35); }
+    .bubble, .bubble-col{ max-width: 88%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="app__header">
+    <div class="brand">
+      <div class="brand__mark">Codex <em>for teams</em></div>
+      <p class="brand__tag">Answers pulled only from your own documents — never a guess, always a source.</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button class="docs-toggle" onclick="toggleArchive()">📁 Documents (<span id="docCountToggle">0</span>)</button>
+      <span class="proto-pill" id="modePill">Live prototype</span>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ARCHIVE / KNOWLEDGE PANEL -->
+    <aside class="archive" id="archive">
+      <h3 class="archive__title">The Archive</h3>
+      <p class="archive__sub">These are the only documents the assistant is allowed to answer from.</p>
+
+      <div id="docList"></div>
+
+      <div class="archive__add">
+        <div id="addFormWrap">
+          <button class="btn btn--ghost btn--full" onclick="showAddForm()">+ Add a document</button>
+        </div>
+      </div>
+
+      <div class="archive__reset">
+        <button class="link-btn" onclick="resetSample()">Reset to sample documents</button>
+      </div>
+    </aside>
+
+    <!-- CHAT PANEL -->
+    <main class="chat">
+      <div class="chat__head">
+        <h2 id="companyHeading">Ask Brightleaf Coffee Co. anything</h2>
+        <p>Every answer is generated live and grounded only in the documents on the left.</p>
+      </div>
+
+      <div class="chat__log" id="chatLog"></div>
+
+      <div class="chat__inputbar">
+        <input id="questionInput" type="text" placeholder="Ask a question about your company…" onkeydown="if(event.key==='Enter') sendQuestion()">
+        <button class="send-btn" id="sendBtn" onclick="sendQuestion()">Ask</button>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// ⚠️ REPLACE THIS with your actual Cloudflare Worker URL once deployed
+// It will look like: https://your-worker-name.your-subdomain.workers.dev
+const WORKER_URL = "PASTE_YOUR_WORKER_URL_HERE";
+
+let documents = [];
+let messages = [];
+let editingId = null;
+let isSending = false;
+
+function genId(){ return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function sampleDocuments(){
+  return [
+    {
+      id: genId(),
+      title: "Time-Off & PTO Policy",
+      content: "Full-time employees accrue 1.5 days of paid time off per month, up to 18 days a year. Requests must be submitted at least 5 business days in advance through your manager. PTO does not carry over year to year beyond 5 unused days. The two weeks around the December holidays are a blackout period for the retail team — no PTO approvals during that window."
+    },
+    {
+      id: genId(),
+      title: "Refund & Returns Policy",
+      content: "Customers can request a refund within 14 days of purchase if the product is unopened. Opened bags of coffee are only eligible for store credit, not a cash refund. Refunds over $100 require manager approval. All refunds must be logged in the POS system under 'Returns' with a reason code."
+    },
+    {
+      id: genId(),
+      title: "New Hire Onboarding Checklist",
+      content: "Day one: new hires get their badge and laptop from the Ops Manager and complete the safety training video. Week one: shadow a shift lead for at least 3 shifts before working solo. All new hires are set up in the payroll system by HR before their first paycheck, which is direct deposit only. Questions about scheduling go to the Ops Manager, not corporate."
+    }
+  ];
+}
+
+async function loadDocuments(){
+  try{
+    const res = await window.storage.get('kb:documents', true);
+    if(res && res.value){
+      documents = JSON.parse(res.value);
+    } else {
+      documents = sampleDocuments();
+      await saveDocuments();
+    }
+  }catch(e){
+    documents = sampleDocuments();
+    try{ await saveDocuments(); }catch(e2){}
+  }
+  renderDocs();
+}
+
+async function saveDocuments(){
+  try{
+    await window.storage.set('kb:documents', JSON.stringify(documents), true);
+  }catch(e){ console.error('Could not save documents', e); }
+}
+
+function renderDocs(){
+  const list = document.getElementById('docList');
+  document.getElementById('docCountToggle').textContent = documents.length;
+  list.innerHTML = '';
+  documents.forEach(doc => {
+    const card = document.createElement('div');
+    card.className = 'doc-card';
+    if(editingId === doc.id){
+      card.innerHTML = `
+        <div class="doc-edit">
+          <input id="edit-title-${doc.id}" value="${escapeAttr(doc.title)}">
+          <textarea id="edit-body-${doc.id}">${escapeHtml(doc.content)}</textarea>
+          <div class="doc-edit__row">
+            <button class="btn btn--primary btn--sm" onclick="saveEdit('${doc.id}')">Save</button>
+            <button class="btn btn--ghost btn--sm" onclick="cancelEdit()">Cancel</button>
+          </div>
+        </div>`;
+    } else {
+      card.innerHTML = `
+        <p class="doc-card__title">${escapeHtml(doc.title)}</p>
+        <p class="doc-card__snippet">${escapeHtml(doc.content)}</p>
+        <div class="doc-card__actions">
+          <button class="link-btn" onclick="startEdit('${doc.id}')">Edit</button>
+          <button class="link-btn link-btn--danger" onclick="deleteDoc('${doc.id}')">Delete</button>
+        </div>`;
+    }
+    list.appendChild(card);
+  });
+}
+
+function startEdit(id){ editingId = id; renderDocs(); }
+function cancelEdit(){ editingId = null; renderDocs(); }
+
+async function saveEdit(id){
+  const title = document.getElementById(`edit-title-${id}`).value.trim() || 'Untitled document';
+  const content = document.getElementById(`edit-body-${id}`).value.trim();
+  documents = documents.map(d => d.id === id ? {...d, title, content} : d);
+  editingId = null;
+  await saveDocuments();
+  renderDocs();
+}
+
+async function deleteDoc(id){
+  documents = documents.filter(d => d.id !== id);
+  await saveDocuments();
+  renderDocs();
+}
+
+function showAddForm(){
+  const wrap = document.getElementById('addFormWrap');
+  wrap.innerHTML = `
+    <div class="doc-edit">
+      <input type="file" id="new-file" accept=".pdf,.txt,.md" onchange="handleFileUpload(event)">
+      <div id="fileStatus" style="font-size:12px;color:var(--ink-soft);margin:2px 0 8px;"></div>
+      <input id="new-title" placeholder="Document title">
+      <textarea id="new-body" placeholder="…or paste the document text here"></textarea>
+      <div class="doc-edit__row">
+        <button class="btn btn--primary btn--sm" onclick="addDoc()">Add</button>
+        <button class="btn btn--ghost btn--sm" onclick="renderAddButton()">Cancel</button>
+      </div>
+    </div>`;
+}
+
+async function handleFileUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('fileStatus');
+  const titleInput = document.getElementById('new-title');
+  const bodyInput = document.getElementById('new-body');
+  const niceName = file.name.replace(/\.[^/.]+$/, '');
+  if(!titleInput.value.trim()) titleInput.value = niceName;
+
+  try{
+    if(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')){
+      statusEl.textContent = 'Reading PDF… this can take a moment for longer files.';
+      const buffer = await file.arrayBuffer();
+      const text = await extractTextFromPdf(buffer);
+      if(!text.trim()){
+        statusEl.textContent = "Couldn't find readable text in this PDF — it may be a scanned image. Try pasting the text manually instead.";
+      } else {
+        bodyInput.value = text;
+        statusEl.textContent = `Loaded ${text.length.toLocaleString()} characters from ${file.name}. Review below, then click Add.`;
+      }
+    } else {
+      const text = await file.text();
+      bodyInput.value = text;
+      statusEl.textContent = `Loaded ${file.name}. Review below, then click Add.`;
+    }
+  }catch(err){
+    statusEl.textContent = "Couldn't read that file. Try pasting the text directly instead.";
+  }
+}
+
+async function extractTextFromPdf(arrayBuffer){
+  const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  let fullText = '';
+  for(let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n\n';
+  }
+  return fullText.trim();
+}
+function renderAddButton(){
+  document.getElementById('addFormWrap').innerHTML = `<button class="btn btn--ghost btn--full" onclick="showAddForm()">+ Add a document</button>`;
+}
+
+async function addDoc(){
+  const title = document.getElementById('new-title').value.trim();
+  const content = document.getElementById('new-body').value.trim();
+  if(!title || !content) return;
+  documents.push({ id: genId(), title, content });
+  await saveDocuments();
+  renderAddButton();
+  renderDocs();
+}
+
+async function resetSample(){
+  documents = sampleDocuments();
+  await saveDocuments();
+  renderDocs();
+}
+
+function toggleArchive(){
+  document.getElementById('archive').classList.toggle('is-open');
+}
+
+/* ---------- Chat ---------- */
+
+function renderChat(){
+  const log = document.getElementById('chatLog');
+  log.innerHTML = '';
+
+  if(messages.length === 0){
+    const chips = documents.slice(0,3).map(d => `<button class="chip" onclick="askSuggestion('${escapeAttr(shortQuestionFor(d.title))}')">${escapeHtml(shortQuestionFor(d.title))}</button>`).join('');
+    log.innerHTML = `
+      <div class="empty-state">
+        <strong>Nothing asked yet</strong>
+        Try a question about one of the documents in the Archive.
+        <div class="suggestions">${chips}</div>
+      </div>`;
+    return;
+  }
+
+  messages.forEach(m => {
+    if(m.role === 'user'){
+      log.innerHTML += `<div class="bubble-row bubble-row--user"><div class="bubble bubble--user">${escapeHtml(m.text)}</div></div>`;
+    } else if(m.role === 'thinking'){
+      log.innerHTML += `<div class="bubble-row"><div class="bubble bubble--assistant"><span class="thinking"><span></span><span></span><span></span></span></div></div>`;
+    } else {
+      const alertClass = m.isAlert ? ' is-alert' : '';
+      const stamp = m.source ? `<span class="stamp">from &ldquo;${escapeHtml(m.source)}&rdquo;</span>` : '';
+      log.innerHTML += `<div class="bubble-row"><div class="bubble-col"><div class="bubble bubble--assistant${alertClass}">${escapeHtml(m.text)}</div>${stamp}</div></div>`;
+    }
+  });
+  log.scrollTop = log.scrollHeight;
+}
+
+function shortQuestionFor(title){
+  return "What's the policy in \u201c" + title + "\u201d?";
+}
+
+function askSuggestion(text){
+  document.getElementById('questionInput').value = text;
+  sendQuestion();
+}
+
+async function sendQuestion(){
+  if(isSending) return;
+  const input = document.getElementById('questionInput');
+  const question = input.value.trim();
+  if(!question) return;
+  if(documents.length === 0){
+    messages.push({role:'assistant', text: "There are no documents loaded yet — add one in the Archive panel first.", isAlert:true});
+    renderChat();
+    return;
+  }
+
+  isSending = true;
+  document.getElementById('sendBtn').disabled = true;
+  input.value = '';
+  messages.push({role:'user', text: question});
+  messages.push({role:'thinking'});
+  renderChat();
+
+  try{
+    if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") {
+      // No backend connected yet — fall back to a simple offline demo using keyword matching
+      // instead of real AI. Good enough to show how the flow works, zero setup required.
+      await new Promise(r => setTimeout(r, 500)); // brief pause so it doesn't feel instant/fake
+      const result = offlineAnswer(question, documents);
+      messages.pop();
+      messages.push({ role: 'assistant', text: result.text, source: result.source, isAlert: result.isAlert });
+      isSending = false;
+      document.getElementById('sendBtn').disabled = false;
+      renderChat();
+      return;
+    }
+
+    const docsBlock = documents.map(d => `### ${d.title}\n${d.content}`).join('\n\n---\n\n');
+    const systemPrompt = `You are an internal knowledge assistant for a small company. Answer ONLY using the information in the DOCUMENTS section below — never use outside knowledge, even if you personally know a general answer.
+
+Rules:
+- If the documents answer the question, respond clearly and helpfully in 2-4 sentences.
+- If the documents do NOT contain the answer, respond with exactly: "I don't see that in your company documents yet." and nothing else.
+- After your answer, on its own new line, add exactly one line in this format: SOURCE: <document title>
+- If you could not answer from the documents, write: SOURCE: none
+
+DOCUMENTS:
+${docsBlock}`;
+
+    const response = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, systemPrompt })
+    });
+
+    const data = await response.json();
+    const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
+    const fullText = textBlocks.join('\n').trim();
+
+    const sourceMatch = fullText.match(/SOURCE:\s*(.+)\s*$/i);
+    const source = sourceMatch ? sourceMatch[1].trim() : null;
+    const answerText = fullText.replace(/SOURCE:\s*.+\s*$/i, '').trim();
+    const isAlert = !source || source.toLowerCase() === 'none';
+
+    messages.pop(); // remove thinking bubble
+    messages.push({
+      role: 'assistant',
+      text: answerText || "I don't see that in your company documents yet.",
+      source: (!isAlert) ? source : null,
+      isAlert
+    });
+  }catch(err){
+    messages.pop();
+    messages.push({role:'assistant', text: "Something went wrong reaching the AI just now. Please try again.", isAlert:true});
+  }
+
+  isSending = false;
+  document.getElementById('sendBtn').disabled = false;
+  renderChat();
+}
+
+/* ---------- Offline demo mode (no API key / backend needed) ---------- */
+function offlineAnswer(question, docs){
+  const stop = new Set(['what','when','where','which','does','do','the','a','an','is','are','for','and','our','about','how','can','i','to','of','in','on']);
+  const qWords = (question.toLowerCase().match(/[a-z0-9']+/g) || []).filter(w => w.length > 2 && !stop.has(w));
+
+  let bestDoc = null, bestScore = 0;
+  docs.forEach(d => {
+    const text = (d.title + ' ' + d.content).toLowerCase();
+    let score = 0;
+    qWords.forEach(w => { if(text.includes(w)) score++; });
+    if(score > bestScore){ bestScore = score; bestDoc = d; }
+  });
+
+  if(!bestDoc || bestScore === 0){
+    return { text: "I don't see that in your company documents yet.", source: null, isAlert: true };
+  }
+
+  const sentences = bestDoc.content.split(/(?<=[.!?])\s+/).filter(Boolean);
+  let bestSentence = sentences[0] || bestDoc.content;
+  let bestSentScore = -1;
+  sentences.forEach(s => {
+    const sl = s.toLowerCase();
+    let sc = 0;
+    qWords.forEach(w => { if(sl.includes(w)) sc++; });
+    if(sc > bestSentScore){ bestSentScore = sc; bestSentence = s; }
+  });
+
+  return { text: bestSentence.trim(), source: bestDoc.title, isAlert: false };
+}
+
+/* ---------- helpers ---------- */
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+}
+function escapeAttr(str){
+  return escapeHtml(str).replaceAll('"','&quot;');
+}
+
+loadDocuments().then(renderChat);
+
+if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") {
+  const pill = document.getElementById('modePill');
+  pill.textContent = 'Demo mode — keyword matching, not live AI';
+  pill.style.borderColor = 'var(--stamp)';
+  pill.style.color = 'var(--stamp)';
+  pill.style.background = '#F5EEDF';
+}
+</script>
+
+</body>
+</html>
