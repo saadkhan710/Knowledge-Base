@@ -421,7 +421,7 @@ if (window.pdfjsLib) {
 
 // ⚠️ REPLACE THIS with your actual Cloudflare Worker URL once deployed
 // It will look like: https://your-worker-name.your-subdomain.workers.dev
-const WORKER_URL = "PASTE_YOUR_WORKER_URL_HERE";
+const WORKER_URL = "https://knowledgebase.saadzz-khan710.workers.dev";
 
 let documents = [];
 let messages = [];
@@ -659,7 +659,7 @@ async function sendQuestion(){
   renderChat();
 
   try{
-    if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") {
+    if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev") {
       // No backend connected yet — fall back to a simple offline demo using keyword matching
       // instead of real AI. Good enough to show how the flow works, zero setup required.
       await new Promise(r => setTimeout(r, 500)); // brief pause so it doesn't feel instant/fake
@@ -757,7 +757,7 @@ function escapeAttr(str){
 
 loadDocuments().then(renderChat);
 
-if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") {
+if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev") {
   const pill = document.getElementById('modePill');
   pill.textContent = 'Demo mode — keyword matching, not live AI';
   pill.style.borderColor = 'var(--stamp)';
