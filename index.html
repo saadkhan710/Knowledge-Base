@@ -421,7 +421,7 @@ if (window.pdfjsLib) {
 
 // ⚠️ REPLACE THIS with your actual Cloudflare Worker URL once deployed
 // It will look like: https://your-worker-name.your-subdomain.workers.dev
-const WORKER_URL = "https://knowledgebase.saadzz-khan710.workers.dev";
+const WORKER_URL = "PASTE_YOUR_WORKER_URL_HERE";
 
 let documents = [];
 let messages = [];
@@ -450,25 +450,40 @@ function sampleDocuments(){
   ];
 }
 
+function apiUrl(path){
+  return WORKER_URL.replace(/\/$/, '') + path;
+}
+
 async function loadDocuments(){
+  // Before the Worker URL is set, there's nothing to load from — just show samples locally.
+  if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE"){
+    documents = sampleDocuments();
+    renderDocs();
+    return;
+  }
   try{
-    const res = await window.storage.get('kb:documents', true);
-    if(res && res.value){
-      documents = JSON.parse(res.value);
+    const res = await fetch(apiUrl('/documents'));
+    const data = await res.json();
+    if(data && Array.isArray(data) && data.length){
+      documents = data;
     } else {
       documents = sampleDocuments();
       await saveDocuments();
     }
   }catch(e){
     documents = sampleDocuments();
-    try{ await saveDocuments(); }catch(e2){}
   }
   renderDocs();
 }
 
 async function saveDocuments(){
+  if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") return;
   try{
-    await window.storage.set('kb:documents', JSON.stringify(documents), true);
+    await fetch(apiUrl('/documents'), {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(documents)
+    });
   }catch(e){ console.error('Could not save documents', e); }
 }
 
@@ -659,7 +674,7 @@ async function sendQuestion(){
   renderChat();
 
   try{
-    if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev") {
+    if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") {
       // No backend connected yet — fall back to a simple offline demo using keyword matching
       // instead of real AI. Good enough to show how the flow works, zero setup required.
       await new Promise(r => setTimeout(r, 500)); // brief pause so it doesn't feel instant/fake
@@ -757,7 +772,7 @@ function escapeAttr(str){
 
 loadDocuments().then(renderChat);
 
-if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev") {
+if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") {
   const pill = document.getElementById('modePill');
   pill.textContent = 'Demo mode — keyword matching, not live AI';
   pill.style.borderColor = 'var(--stamp)';
