@@ -422,6 +422,10 @@ if (window.pdfjsLib) {
 // ⚠️ REPLACE THIS with your actual Cloudflare Worker URL once deployed
 // It will look like: https://your-worker-name.your-subdomain.workers.dev
 const WORKER_URL = "https://knowledgebase.saadzz-khan710.workers.dev/";
+// True once a real Worker URL is in place above (detected by format, not by
+// matching the placeholder text — so this can't break if the placeholder
+// string gets edited or replaced elsewhere in this file).
+const WORKER_CONFIGURED = /^https?:\/\//.test(WORKER_URL);
 
 let documents = [];
 let messages = [];
@@ -456,7 +460,7 @@ function apiUrl(path){
 
 async function loadDocuments(){
   // Before the Worker URL is set, there's nothing to load from — just show samples locally.
-  if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev/"){
+  if (!WORKER_CONFIGURED){
     documents = sampleDocuments();
     renderDocs();
     return;
@@ -477,7 +481,7 @@ async function loadDocuments(){
 }
 
 async function saveDocuments(){
-  if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev/") return;
+  if (!WORKER_CONFIGURED) return;
   try{
     await fetch(apiUrl('/documents'), {
       method: 'POST',
@@ -674,7 +678,7 @@ async function sendQuestion(){
   renderChat();
 
   try{
-    if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev/") {
+    if (!WORKER_CONFIGURED) {
       // No backend connected yet — fall back to a simple offline demo using keyword matching
       // instead of real AI. Good enough to show how the flow works, zero setup required.
       await new Promise(r => setTimeout(r, 500)); // brief pause so it doesn't feel instant/fake
@@ -772,7 +776,7 @@ function escapeAttr(str){
 
 loadDocuments().then(renderChat);
 
-if (WORKER_URL === "https://knowledgebase.saadzz-khan710.workers.dev/") {
+if (!WORKER_CONFIGURED) {
   const pill = document.getElementById('modePill');
   pill.textContent = 'Demo mode — keyword matching, not live AI';
   pill.style.borderColor = 'var(--stamp)';
