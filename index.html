@@ -456,7 +456,7 @@ function apiUrl(path){
 
 async function loadDocuments(){
   // Before the Worker URL is set, there's nothing to load from — just show samples locally.
-  if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE"){
+  if (const WORKER_URL = "https://knowledgebase.saadzz-khan710.workers.dev/"){
     documents = sampleDocuments();
     renderDocs();
     return;
@@ -477,7 +477,7 @@ async function loadDocuments(){
 }
 
 async function saveDocuments(){
-  if (WORKER_URL === "PASTE_YOUR_WORKER_URL_HERE") return;
+  if (const WORKER_URL = "https://knowledgebase.saadzz-khan710.workers.dev/") return;
   try{
     await fetch(apiUrl('/documents'), {
       method: 'POST',
